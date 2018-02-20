@@ -31,6 +31,8 @@ namespace MetronomeWIP
         int beatCounter = 1;
         System.Timers.Timer tick;
 
+        bool segmentEnd = false;
+        bool timerActive = false;
         bool metronomeOn = false; 
 
 
@@ -41,19 +43,25 @@ namespace MetronomeWIP
             metronome.NoteLength = noteRest;
 
             metronomeOn = !metronomeOn;
+            segmentEnd = false;
 
-            if(!metronomeOn)
+            //if (!metronomeOn || segmentEnd == true)
+            if(timerActive)
             {
                 tick.Stop();
-                tick.Dispose();
+                tick.Dispose();               
+                ClearBeatMeasureData();
+                timerActive = false;
             }
-            else
+            if(metronomeOn)
             {
+                ClearBeatMeasureData();
+                segmentEnd = false;
                 metronome.NoteLength = noteRest;
                 metronome.BeatsPerMeasure = beatsPerMeasure;
                 metronome.CurrentBeat = 1;
                 tick = new System.Timers.Timer(noteMil);
-
+                timerActive = true;
                 tick.Elapsed += TimerOut;
                 tick.AutoReset = true;
                 tick.Enabled = true;
@@ -70,9 +78,9 @@ namespace MetronomeWIP
         }
 
 
-        private void textBox4_TextChanged(object sender, EventArgs e)
+        private void textBoxMeasure_TextChanged(object sender, EventArgs e)
         {
-            if (int.TryParse(textBox4.Text, out int num))
+            if (int.TryParse(textBoxMeasures.Text, out int num))
             {
                 measures = num;
             }
@@ -120,10 +128,7 @@ namespace MetronomeWIP
 
         //}
 
-        private void TimerOut(Object source, ElapsedEventArgs e)
-        {         
-            metronome.MetronomeTick();
-        }
+
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -132,6 +137,57 @@ namespace MetronomeWIP
                 tick.Enabled =!tick.Enabled;
             }
 
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void TimerOut(Object source, ElapsedEventArgs e)
+        {
+            if (!metronomeOn || segmentEnd == true)
+            {
+                ClearBeatMeasureData();
+            }
+            else
+            {
+                if (beatCounter == beatsPerMeasure && measureCounter == measures)
+                {
+                    segmentEnd = true;
+                    metronomeOn = false;
+                }
+
+                metronome.MetronomeTick();
+                beatCounter = metronome.CurrentBeat;
+                label7.Text = $"Current Beat: {beatCounter}";
+
+                if (beatCounter == 1 && measureCounter + 1 <= measures)
+                {
+                    measureCounter += 1;
+                    label6.Text = $"Current Measure: {measureCounter}";
+                }
+
+
+            }
+        }
+
+        private void ClearBeatMeasureData()
+        {
+            label7.Text = $"Current Beat: 1";
+            beatCounter = 1;
+            label6.Text = $"Current Measure: 1";
+            measureCounter = 1;
+        }
+
+        private void textBox5_TextChanged(object sender, EventArgs e)
+        {
 
         }
     }
